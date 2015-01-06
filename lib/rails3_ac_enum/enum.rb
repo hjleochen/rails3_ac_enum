@@ -36,11 +36,13 @@ module ActiveRecord
   #     enum status: { active: 0, archived: 1 }
   #   end
   module Enum
-    def enum(definitions)
+    def enum(definitions, translates = {})
       klass = self
       definitions.each do |name, values|
         enum_values = {}
+        enum_trans = {}
         name        = name.to_sym
+        trans = translates[name] || {}
 
         _enum_methods_module.module_eval do
           # def direction=(value) self[:direction] = DIRECTION[value] end
@@ -53,11 +55,16 @@ module ActiveRecord
           }
 
           # def direction() DIRECTION.key self[:direction] end
-          define_method(name) { enum_values.key self[name] }
+          define_method(name) { enum_trans[self[name]] || enum_values.key(self[name]) }
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
             enum_values[value.to_s] = i
+            if trans.is_a? Array
+              enum_trans[i] = trans[i]
+            else
+              enum_trans[i] = trans.key i
+            end
 
             # scope :incoming, -> { where direction: 0 }
             klass.scope value, -> { klass.where name => i }
