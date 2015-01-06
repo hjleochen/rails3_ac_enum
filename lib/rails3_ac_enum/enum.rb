@@ -75,6 +75,9 @@ module ActiveRecord
             # def incoming! update! direction: :incoming end
             define_method("#{value}!") { update_attributes! name => value.to_sym }
           end
+
+          self.const_set(name.upcase, enum_values)
+          self.const_set("#{name.upcase}_T", enum_trans)
         end
       end
     end
