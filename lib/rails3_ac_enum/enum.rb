@@ -48,22 +48,32 @@ module ActiveRecord
           # def direction=(value) self[:direction] = DIRECTION[value] end
           define_method("#{name}=") { |value|
             value = value.to_s
-            unless enum_values.has_key?(value)
+            #if enum_values.has_key?(value) 
+            #  self[name] = enum_values[value]
+            #elsif enum_values.key(value.to_i)
+            #  self[name] = value
+            #else
+            #  raise ArgumentError, "'#{value}' is not a valid #{name}"
+            #end
+            
+            unless enum_values.has_key?(value) 
               raise ArgumentError, "'#{value}' is not a valid #{name}"
             end
+
             self[name] = enum_values[value]
           }
 
           # def direction() DIRECTION.key self[:direction] end
+          #define_method(name) { enum_values.key self[name] }
           define_method(name) { enum_trans[self[name]] || enum_values.key(self[name]) }
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
           pairs.each do |value, i|
             enum_values[value.to_s] = i
             if trans.is_a? Array
-              enum_trans[i] = trans[i]
+              enum_trans[value] = trans[i] 
             else
-              enum_trans[i] = trans.key i
+              enum_trans[value] = trans.key i
             end
 
             # scope :incoming, -> { where direction: 0 }
